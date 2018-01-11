@@ -43,10 +43,10 @@ I start by preparing "object points", which will be the (x, y, z) coordinates of
 
 I then used the output `objpoints` and `imgpoints` to compute the camera calibration and distortion coefficients using the `cv2.calibrateCamera()` function.  I applied this distortion correction to the test image using the `cv2.undistort()` function and obtained this result: 
 Input image:
-![alt text](./output_images/calibration3.jpg)
+![alt text](./output_images/calibration_in.jpg)
 
 Result:
-![alt text](./output_images/output_calibration3.jpg)
+![alt text](./output_images/calibration_out.jpg)
 
 The calibration function is called within the initialization() step in `run.py` line #47. If camera calibration parameters are available already, they will be loaded. Otherwise, the camera will be calibrated.
 
@@ -55,14 +55,14 @@ The calibration function is called within the initialization() step in `run.py` 
 #### 1. Undistort image: 
 
 The following image shows the effect of undistorting the image using the calibration data received in the previous step. In the following image both, the distorted and the undistored image, have been overlayed to visualize the effect of undistortion:
-![alt text](./output_images/undistorted_test2.jpg)
+![alt text](./output_images/distortion.jpg)
 
 #### 2. Image masking
 
 I used a combination of color/gradient thresholds and geometric masking to generate a binary image, which is implemented in lines #132 through #223 in `utils.py`).  In the following image, the effects of the different image masks can be observed. Green shows the effect of gradient masking using sobel x. Blue shows color masking. 
 What can be observed in this particular plot is, why it is important to use both masking methods. Gradient thresholding shows good performance on the darker surface, but insufficient performance on the lighter surface due to the reduced contrast. Color masking compensates for that. However, color masking has issue with shadows thrown by trees for example. That is why I applied an additional gradient threshold on the color mask to reduce the effects of this downside.
 
-![alt text](./output_images/image_masks.jpg)
+![alt text](./output_images/masking.jpg)
 
 #### 3. Perspective transform
 
@@ -92,25 +92,48 @@ This resulted in the following source and destination points:
 
 #### 4. Finding lanes
 
-Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
+The masked binary image in birdview perspective builds the basis for the lane finding algorithm. The methodology to find lanes follows a 4-step process:  
+    1. Check if lanes have been identified in the previous time step and make a **local search** where the lanes have been detected before  
+    2. If lanes have been found with the local search approach, **check lane validity** for right and left lane respectively.  
+    3. If only one lane (left or right) is invalid, **hold the lane**, which has been detected in the previous time step. If both lanes are invalid, hold both lanes detected in the previous time step.  
+    4. If no lane has been detected before or if no valid lane has been detected for 5 cycles by the local search method, make a **histogram search**.  
+    
+**Histogram search** (`hist_search()`in lines #255 through #325 in `utils.py`)  
+The histogram search approaches the lane finding problem by dividing the binary image into 9 horizontal slices. For each slice, an histogram in vertical direction is computed, which basically the sum of pixels with value 1 for each column in the image slice. This method starts with the slice on the lower part of the picture and works upwards. Thus, it can be improved by applying a geometric mask before the search. Since we know that the car is driving more or less centerd in the lane and that the lane width can be assummed to be constant, we know quite precisely where we can expect lanes to be detected in the lower part of the image. Hence, we can apply a geometric mask around that area to improve the histogram search.
 
-![alt text](./output_images/plot_straight_lines2.jpg)
+![alt text](./output_images/histogram_search.jpg)  
 
-#### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
+**Local search** (`margin_search()` in lines #328 through #350 in `utils.py`)  
+The local search method uses the information from the previous time step(s), if lanes had been detected before. It applies a margin around the previously detected lanes and searches only in this area locally for "hot pixels".
 
-I did this in lines # through # in my code in `my_other_file.py`
+**Lane validity** (`check_validity()` in lines #519 through #544 in `utils.py`)  
+For the lane validity check, both lanes (right/left) are checked for validity respectively. The following criteria checks have to be passed for lane validity:  
+    1. **Lateral position check** (lines #442 through #478 in `utils.py`)  
+       a) The lane width has to match the expected average lane width of 3.7 meters (650 pixels) with a tolerance of 50 pixels.  
+       b) The right lane position shouldn't differ more than 50 pixels compared to the previous time step.  
+       c) The left lane position shouldn't differ more than 50 pixels compared to the previous time step.  
+    2. **Curvature check** (lines #481 through #517 in `utils.py`)  
+       a) Check if both detected lanes curvatures have the same sign.  
+       b) Check if the curvature of the right lane hasn't changed more than the allowed change rate.  
+       c) Check if the curvature of the left lane hasn't changed more than the allowed change rate.  
+  
+As described before, if the validity of the detected lanes can't be confirmed, either the left, right or both lanes will be replaced with the lanes detected in the previous time step. This is done for maximum 5 consecutive cycles.  
 
-#### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
+#### 5. Radius of curvature & lane center position
 
-I implemented this step in lines # through # in my code in `yet_another_file.py` in the function `map_lane()`.  Here is an example of my result on a test image:
+`curvature()`: The calculation of the curvature radius is done in lines #378 through #391 in `utils.py`. To smoothen the output, the average of the last 5 cycles is taken.  
+`get_lane_center_position()`: The calculation of the lane center position is done in lines #422 through #440 in `utils.py` and assumes the camera to be installed in the center of the car (vehicle center = image center). The current lateral position is calculated by computing the average lateral position in the lower part of the picture considering an area of 200 pixels height. From there, the distance to the image center can be computed.  
 
-![alt text][image6]
+#### 6. Pipeline output 
+Function: `plot_lanes()`in lines #664 through #733 in `utils.py`)  
+
+Using the outputs from step 4 and 5 above, the lanes, radius and lateral position can be plotted on the original image. To do this, the binary image with lanes drawn on it has to be back-transformed to the original perspective. This can be easily done be using the inverted `birdview()` function (lines #230 through #248) using the source points as destination points, which have been defined in section 3. The output of this step can be seen in the following image:
+
+![alt text](./output_images/output2.jpg)  
 
 ---
 
 ### Pipeline (video)
-
-#### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
 
 Here's a [link to my video result](./project_video.mp4)
 
