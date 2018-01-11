@@ -106,15 +106,15 @@ The local search method uses the information from the previous time step(s), if 
 
 **Lane validity**  
 For the lane validity check, both lanes (right/left) are checked for validity respectively. The following criteria checks have to be passed for lane validity:  
-    1. **Lateral position check** (lines #442 through #478 in 'utils.py')
-        a) The lane width has to match the expected average lane width of 3.7 meters (650 pixels) with a tolerance of 50 pixels. 
-        b) The right lane position shouldn't differ more than 50 pixels compared to the previous time step.
-        c) The left lane position shouldn't differ more than 50 pixels compared to the previous time step.
-    2. **Curvature check** (lines #481 through #517 in 'utils.py')
-        a) Check if both detected lanes curvatures have the same sign.
-        b) Check if the curvature of the right lane hasn't changed more than the allowed change rate.
-        b) Check if the curvature of the left lane hasn't changed more than the allowed change rate.
-        
+    1. **Lateral position check** (lines #442 through #478 in `utils.py`)  
+       a) The lane width has to match the expected average lane width of 3.7 meters (650 pixels) with a tolerance of 50 pixels.  
+       b) The right lane position shouldn't differ more than 50 pixels compared to the previous time step.  
+       c) The left lane position shouldn't differ more than 50 pixels compared to the previous time step.  
+    2. **Curvature check** (lines #481 through #517 in `utils.py`)  
+       a) Check if both detected lanes curvatures have the same sign.  
+       b) Check if the curvature of the right lane hasn't changed more than the allowed change rate.  
+       c) Check if the curvature of the left lane hasn't changed more than the allowed change rate.  
+  
 As described before, if the validity of the detected lanes can't be confirmed, either the left, right or both lanes will be replaced with the lanes detected in the previous time step. This is done for maximum 5 consecutive cycles.
 
 ![alt text](./output_images/plot_straight_lines2.jpg)
