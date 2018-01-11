@@ -135,7 +135,7 @@ Using the outputs from step 4 and 5 above, the lanes, radius and lateral positio
 
 ### Pipeline (video)
 
-Here's a [link to my video result](./project_video.mp4)
+Here's a [link to my video result](./output_images/project_video.mp4)
 
 ---
 
