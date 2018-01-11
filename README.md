@@ -92,7 +92,31 @@ This resulted in the following source and destination points:
 
 #### 4. Finding lanes
 
-Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
+The masked binary image in birdview perspective builds the basis for the lane finding algorithm. The methodology to find lanes follows a 4-step process:
+    1. Check if lanes have been identified in the previous time step and make a **local search** where the lanes have been detected before
+    2. If lanes have been found with the local search approach, **check lane validity** for right and left lane respectively
+    3. If only one lane (left or right) is invalid, **hold the lane**, which has been detected in the previous time step. If both lanes are invalid, hold both lanes detected in the previous time step.
+    4. If no lane has been detected before or if no valid lane has been detected for 5 cycles by the local search method, make a **histogram search**.
+    
+**Histogram search**
+The histogram search approaches the lane finding problem by dividing the binary image into 9 horizontal slices. For each slice, an histogram in vertical direction is computed, which basically the sum of pixels with value 1 for each column in the image slice. This method starts with the slice on the lower part of the picture and works upwards. Thus, it can be improved by applying a geometric mask before the search. Since we know that the car is driving more or less centerd in the lane and that the lane width can be assummed to be constant, we know quite precisely where we can expect lanes to be detected in the lower part of the image. Hence, we can apply a geometric mask around that area to improve the histogram search.
+
+**Local search**
+The local search method uses the information from the previous time step(s), if lanes had been detected before. It applies a margin around the previously detected lanes and searches only in this area locally for "hot pixels".
+
+**Lane validity**
+For the lane validity check, both lanes (right/left) are checked for validity respectively. The following criteria checks have to be passed for lane validity:
+
+    1. **Lateral position check** (lines #442 through #478 in 'utils.py')
+        a) The lane width has to match the expected average lane width of 3.7 meters (650 pixels) with a tolerance of 50 pixels. 
+        b) The right lane position shouldn't differ more than 50 pixels compared to the previous time step.
+        c) The left lane position shouldn't differ more than 50 pixels compared to the previous time step.
+    2. **Curvature check** (lines #481 through #517 in 'utils.py')
+        a) Check if both detected lanes curvatures have the same sign.
+        b) Check if the curvature of the right lane hasn't changed more than the allowed change rate.
+        b) Check if the curvature of the left lane hasn't changed more than the allowed change rate.
+        
+As described before, if the validity of the detected lanes can't be confirmed, either the left, right or both lanes will be replaced with the lanes detected in the previous time step. This is done for maximum 5 consecutive cycles.
 
 ![alt text](./output_images/plot_straight_lines2.jpg)
 
