@@ -1,6 +1,7 @@
 import os
 from os.path import join
 import cv2
+import numpy as np
 
 import utils
 import constants as c

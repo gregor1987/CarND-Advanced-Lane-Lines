@@ -648,7 +648,7 @@ def save(imgs, file_names, out, video = False):
     """
     if not video:
         for i in range(len(imgs)):
-            cv2.imwrite(c.SAVE_PATH + 'output_' + file_names[i], cv2.cvtColor(imgs[i], cv2.COLOR_BGR2RGB))
+            cv2.imwrite(c.SAVE_PATH + 'masked_' + file_names[i], cv2.cvtColor(imgs[i], cv2.COLOR_BGR2RGB))
     else:
         print(out.isOpened())
         for i in range(len(imgs)):
