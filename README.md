@@ -104,7 +104,7 @@ The histogram search approaches the lane finding problem by dividing the binary 
 ![alt text](./output_images/histogram_search.jpg)  
 
 **Local search** (`margin_search()` in lines #328 through #350 in `utils.py`)  
-The local search method uses the information from the previous time step(s), if lanes had been detected before. It applies a margin around the previously detected lanes and searches only in this area locally for "hot pixels".
+The local search method uses the information from the previous time step(s), if lanes had been detected before. It applies a margin around the previously detected lanes (yellow lanes in the image above) and searches only in this area locally for "hot pixels".
 
 **Lane validity** (`check_validity()` in lines #519 through #544 in `utils.py`)  
 For the lane validity check, both lanes (right/left) are checked for validity respectively. The following criteria checks have to be passed for lane validity:  
@@ -143,4 +143,6 @@ Here's a [link to my video result](./project_video.mp4)
 
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+I had issues dealing with effects of shadow. As discussed previously, for the detection of yellow lanes on light surfaces and color mask is necessary due to low contrast. However, this leads to the fact that also other feature with lower contrast will be detected, such as shadows of trees on the surface. Here my algorithm would need some improvements with a smarte masking technique.  
+Furthermore, I didn't use any filtering techniques for smoothening of the output to be able to control on these output signals. This could be achieved by means of a kalman filter or a more simpler pt1-filter (low-pass).
+Generally, to make the lane detection more robust, one could think of a dynamic masking technique, which will adapt the masking on the current scene (surfaces, shadows, light, etc.).
