@@ -104,7 +104,7 @@ The histogram search approaches the lane finding problem by dividing the binary 
 ![alt text](./output_images/histogram_search.jpg)  
 
 **Local search** (`margin_search()` in lines #328 through #350 in `utils.py`)  
-The local search method uses the information from the previous time step(s), if lanes had been detected before. It applies a margin around the previously detected lanes and searches only in this area locally for "hot pixels".
+The local search method uses the information from the previous time step(s), if lanes had been detected before. It applies a margin around the previously detected lanes (yellow lanes in the image above) and searches only in this area locally for "hot pixels".
 
 **Lane validity** (`check_validity()` in lines #519 through #544 in `utils.py`)  
 For the lane validity check, both lanes (right/left) are checked for validity respectively. The following criteria checks have to be passed for lane validity:  
