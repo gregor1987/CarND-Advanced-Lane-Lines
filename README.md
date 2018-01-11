@@ -143,4 +143,6 @@ Here's a [link to my video result](./project_video.mp4)
 
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+I had issues dealing with effects of shadow. As discussed previously, for the detection of yellow lanes on light surfaces and color mask is necessary due to low contrast. However, this leads to the fact that also other feature with lower contrast will be detected, such as shadows of trees on the surface. Here my algorithm would need some improvements with a smarte masking technique.  
+Furthermore, I didn't use any filtering techniques for smoothening of the output to be able to control on these output signals. This could be achieved by means of a kalman filter or a more simpler pt1-filter (low-pass).
+Generally, to make the lane detection more robust, one could think of a dynamic masking technique, which will adapt the masking on the current scene (surfaces, shadows, light, etc.).
