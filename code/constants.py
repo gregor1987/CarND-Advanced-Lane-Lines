@@ -33,9 +33,10 @@ def getDestinationPts(img_size):
 DATA_PATH = '../data/'
 CALIBRATION_PATH = join(DATA_PATH, 'camera_cal/')
 CALIBRATION_DATA = join(CALIBRATION_PATH, 'calibration_data.p')
-TEST_PATH = join(DATA_PATH, 'test_images/')
-
-SAVE_PATH = join(DATA_PATH, 'output_images/')
+IMAGES_TEST_PATH = join(DATA_PATH, 'test_images/')
+IMAGES_SAVE_PATH = join(DATA_PATH, 'output_images/')
+VIDEO_TEST_PATH = join(DATA_PATH, 'test_video/')
+VIDEO_SAVE_PATH = join(DATA_PATH, 'output_video/')
 
 # Define image size
 IMG_SIZE = (1280, 720)

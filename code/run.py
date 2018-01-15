@@ -50,8 +50,8 @@ def run(video=False):
     history = [[],[],[]]
     # Process single, not consecutive images
     if not video:
-        file_paths = glob(join(c.TEST_PATH, '*.jpg'))
-        file_names = os.listdir(c.TEST_PATH)
+        file_paths = glob(join(c.IMAGES_TEST_PATH, '*.jpg'))
+        file_names = os.listdir(c.IMAGES_TEST_PATH)
         imgs = utils.read_input(file_paths)
         output = []
         for img in imgs:
@@ -60,15 +60,16 @@ def run(video=False):
         utils.save(output, file_names, None)
     # Process videos or consecutive images
     else:
-        file_paths = glob(join(c.TEST_PATH, '*.jpg'))
+        file_path = glob(join(c.VIDEO_TEST_PATH, '*.mp4'))
+        frames = utils.read_input(file_path[0], video=True)
         fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-        output_video = cv2.VideoWriter(c.SAVE_PATH + 'output_video.mp4', fourcc, 25.0, (1280,720))
+        output_video = cv2.VideoWriter(c.VIDEO_SAVE_PATH + 'output_video.mp4', fourcc, 25.0, (1280,720))
         # Run pipeline in batches
-        for offset in range(0, len(file_paths), c.BATCH_SIZE):
-            imgs = utils.read_input(file_paths[offset:offset+c.BATCH_SIZE], video=False)
+        for offset in range(0, len(frames), c.BATCH_SIZE):
+            batch_input = frames[offset:offset+c.BATCH_SIZE]
             batch_output = []
-            for img in imgs:
-                result, history = pipeline(img, history, camera_mtx, dist_params, video)
+            for frame in batch_input:
+                result, history = pipeline(frame, history, camera_mtx, dist_params, video)
                 batch_output.append(result)
             utils.save(batch_output, None, output_video, video)
 
@@ -76,4 +77,4 @@ def run(video=False):
         output_video.release()
 
 # Run code
-run()
+run(video=True)

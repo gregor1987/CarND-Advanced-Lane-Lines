@@ -603,12 +603,13 @@ def find_lanes(img, left_fit_hist, right_fit_hist, video=False):
 ############################   I / O  #############################
 ###################################################################
 
-def read_input(file_paths, video = False):
+def read_input(file_paths, frames=2000, video = False):
     """
     Reads images from input file paths into a numpy array. Paths can either be .jpg for single images
     or .mp4 for videos.
     :param file_paths: Array containing the file paths.
     :param video: if set to TRUE, an input video will be processed.
+    :param frames: Sets the maximum number of frames which shall be read in
     :return: A numpy array of images.
     """
     if not video:
@@ -620,14 +621,17 @@ def read_input(file_paths, video = False):
     else:
         # Input is a video.
         vidcap = cv2.VideoCapture(file_paths)
+        length = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
 
         # Load frames
         frames_list = []
-        while vidcap.isOpened():
+        count = 1
+        while vidcap.isOpened() and count < frames:
             ret, frame = vidcap.read()
-
+            print('Reading frame',count)
             if ret:
-                frames_list.append(frame)
+                frames_list.append(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+                count += 1
             else:
                 break
 
@@ -638,22 +642,22 @@ def read_input(file_paths, video = False):
     return frames
 
 
-def save(imgs, file_names, out, video = False):
+def save(imgs, file_names, video_out, video = False):
     """
     Saves imgs to file using original file_names.
     :param imgs: The frames to save. A single image for .jpgs, or multiple frames for .mp4s.
     :param file_names: array containing file names of input imgs for naming of output images.
-    :param out: cv2.VideoWriter object for video writing.
+    :param video_out: cv2.VideoWriter object for video writing.
     :param video: if set to TRUE, an input video will be processed.
     """
     if not video:
         for i in range(len(imgs)):
-            cv2.imwrite(c.SAVE_PATH + 'masked_' + file_names[i], cv2.cvtColor(imgs[i], cv2.COLOR_BGR2RGB))
+            cv2.imwrite(c.IMAGES_SAVE_PATH + 'output_' + file_names[i], cv2.cvtColor(imgs[i], cv2.COLOR_BGR2RGB))
     else:
-        print(out.isOpened())
+        print(video_out.isOpened())
         for i in range(len(imgs)):
-            print('Writing image '+str(i))
-            out.write(cv2.cvtColor(imgs[i], cv2.COLOR_BGR2RGB))
+            print('Writing frame '+str(i))
+            video_out.write(cv2.cvtColor(imgs[i], cv2.COLOR_BGR2RGB))
 
 
 ###################################################################
