@@ -50,7 +50,7 @@ The following image shows the effect of undistorting the image using the calibra
 #### 2. Perspective transform
 
 I decided to make the perspective transform step before the image masking step, since I am only interested in the transformed image for detecting the lanes. By doing so, I am implicitly applying a geometric mask and can focus on the region of interest for the tuning of the image masks.  
-The code for my perspective transform includes a function called `birdseye()`, which is located in lines #158 through #176 in `utils.py`.  This function takes the undistorted image (`img`) as an input, as well as source (`src`) and destination (`dst`) points. As the name suggests, it performs a perspective transform from vehicle camera perpective to birdview perspective. The function can be also used vice versa for backtransformation after lanes have been identified. I manually extracted the most suitable values for source points from the test_image `straight_lines2.jpg`, which appeared to show the straightest lines. The destination points I computed from the image size:
+The code for my perspective transform includes a function called `birdseye()`, which is located in lines #158 through #176 in `utils.py`.  This function takes the undistorted image `img` as an input, as well as source `src` and destination `dst` points. As the name suggests, it performs a perspective transform from vehicle camera perpective to birdview perspective. The function can be also used vice versa for backtransformation after lanes have been identified. I manually extracted the most suitable values for source points from the test_image `straight_lines2.jpg`, which appeared to show the straightest lines. The destination points I computed from the image size:
 
 ```python
 dst = np.float32(
@@ -90,7 +90,7 @@ The CLAHE normalization step helps to minimize the effects from different lightn
 
 The CLAHE method is described here:  
 
-[CLAHE - Contrast Limited Adaptive Histogram Equalization] (https://docs.opencv.org/3.1.0/d5/daf/tutorial_py_histogram_equalization.html)
+[CLAHE - Contrast Limited Adaptive Histogram Equalization](https://docs.opencv.org/3.1.0/d5/daf/tutorial_py_histogram_equalization.html)
 
 **Color masking**  (lines #22 through #34 of `masks.py`)  
 For color masking I found that the LAB color space is most suitable for the white and yellow lane detection. I implemented two seperate masks, one for yellow line detection `def yellow_LAB()` and the other for white line detection `def white_LAB()`. The methodology for both lane types is the same: Convert image to LAB color space, apply upper and lower thresholds to all color channels respectively and combine them into one binary image. The only difference is, that I tuned the threshold differently for white and yellow lane detection. The results of this step can be seen in the following image:  
@@ -100,11 +100,11 @@ For color masking I found that the LAB color space is most suitable for the whit
 #### 4. Finding lanes
 
 The masked binary image in birdview perspective builds the basis for the lane finding algorithm. Again, a 2-step process was sufficient to yield a satisfying result:
-  
-1. Apply search method  
-    Prio 1: Use local search method (if lanes have been detected in the previous frame)  
-    Prio 2: Use histogram search method (ff no lanes have been detected in previous frame)  
-2. Apply gamma filter to lane coefficients 
+
+    1. Apply search method  
+        Prio 1: Use local search method (if lanes have been detected in the previous frame)  
+        Prio 2: Use histogram search method (ff no lanes have been detected in previous frame)  
+    2. Apply gamma filter to lane coefficients 
      
 **Histogram search** (`hist_search()`in lines #93 through #171 in `lanes.py`)  
 The histogram search approaches the lane finding problem by dividing the binary image into 9 horizontal slices. For each slice, an histogram in vertical direction is computed, which basically the sum of pixels with value 1 for each column in the image slice. This method starts with the slice on the lower part of the picture and works upwards. Thus, it can be improved by applying a geometric mask before the search. Since we know that the car is driving more or less centerd in the lane and that the lane width can be assummed to be constant, we know quite precisely where we can expect lanes to be detected in the lower part of the image. Hence, we can apply a geometric mask around that area to improve the histogram search.
