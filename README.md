@@ -75,9 +75,11 @@ The result of the perspective transform looks as follows:
 
 #### 3. Image masking
 
-For image masking I took a 2-step process including:  
+For image masking I took a 2-step process including: 
+  
     1. CLAHE normalization  
     2. Color masking  
+  
 The results using these two steps were sufficiently enough, so that I didn't apply any further masking techniques, such as gradient or geometric masking.  
   
 **CLAHE Normalization**  (lines #22 through #34 of `masks.py`)  
@@ -88,9 +90,9 @@ The CLAHE normalization step helps to minimize the effects from different lightn
 
 The CLAHE method is described here:  
 
-[CLAHE - Contrast Limited Adaptive Histogram Equalization] https://docs.opencv.org/3.1.0/d5/daf/tutorial_py_histogram_equalization.html
+[CLAHE - Contrast Limited Adaptive Histogram Equalization] (https://docs.opencv.org/3.1.0/d5/daf/tutorial_py_histogram_equalization.html)
 
-**Color masking**  (lines #22 through #34 of `masks.py`)
+**Color masking**  (lines #22 through #34 of `masks.py`)  
 For color masking I found that the LAB color space is most suitable for the white and yellow lane detection. I implemented two seperate masks, one for yellow line detection `def yellow_LAB()` and the other for white line detection `def white_LAB()`. The methodology for both lane types is the same: Convert image to LAB color space, apply upper and lower thresholds to all color channels respectively and combine them into one binary image. The only difference is, that I tuned the threshold differently for white and yellow lane detection. The results of this step can be seen in the following image:  
 
 ![alt text](./output_images/Masks_test6.png)
@@ -119,8 +121,10 @@ gamma_filter = measurement * gamma + (1-gamma) * history
 ```
 #### 5. Radius of curvature & lane center position
 
-`get_radius()`: The calculation of the curvature radius is done in lines #56 through #72 in `lanes.py`. As said, in the previous section, the result is smoothened by applying a gamma filter.
-`get_lateral_position()`: The calculation of the lane center position is done in lines #34 through #54 in `lanes.py` and assumes the camera to be installed in the center of the car (vehicle center = image center). The current lateral position is calculated by computing the average lateral position in the lower part of the picture considering an area of 100 pixels height. From there, the distance to the image center can be computed. The [standard ego vehicle coordinate system](https://raw.githubusercontent.com/MechLabEngineering/TinkerforgeAttitude/master/Fahrzeug-Koordinatensystem-DIN70000.png) is applied, thus, positive values pointing to the left.
+`get_radius()`:  
+The calculation of the curvature radius is done in lines #56 through #72 in `lanes.py`. As said, in the previous section, the result is smoothened by applying a gamma filter.  
+`get_lateral_position()`:  
+The calculation of the lane center position is done in lines #34 through #54 in `lanes.py` and assumes the camera to be installed in the center of the car (vehicle center = image center). The current lateral position is calculated by computing the average lateral position in the lower part of the picture considering an area of 100 pixels height. From there, the distance to the image center can be computed. The [standard ego vehicle coordinate system](https://raw.githubusercontent.com/MechLabEngineering/TinkerforgeAttitude/master/Fahrzeug-Koordinatensystem-DIN70000.png) is applied, thus, positive values pointing to the left.
 
 `Distance from Center > 0: ego vehicle driving right from lane center`  
 `Distance from Center < 0: ego vehicle driving left from lane center`  
