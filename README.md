@@ -79,30 +79,31 @@ For image masking I took a 2-step process including:
     1. CLAHE normalization  
     2. Color masking  
 The results using these two steps were sufficiently enough, so that I didn't apply any further masking techniques, such as gradient or geometric masking.  
-**CLAHE Normalization**  
-The CLAHE normalization step helps to minimize the effects from different lightning conditions. Its main purpose for my pipeline is to minimize the impact of shadows from trees on the lane detection quality. The implementation can be found in lines #22 through #34 of `masks.py`. Since I'll be using the LAB color space later on, I also applied the normalization in LAB color space. The effect of the normalization can be seend in the following image:  
+  
+**CLAHE Normalization**  (lines #22 through #34 of `masks.py`)  
+The CLAHE normalization step helps to minimize the effects from different lightning conditions. Its main purpose for my pipeline is to minimize the impact of shadows from trees on the lane detection quality. Since I'll be using the LAB color space later on, I also applied the normalization in LAB color space. The effect of the normalization can be seend in the following image:  
 
 ![alt text](./output_images/Clahe_test6.png)
 
 
 The CLAHE method is described here:  
 
-[CLAHE (Contrast Limited Adaptive Histogram Equalization)] https://docs.opencv.org/3.1.0/d5/daf/tutorial_py_histogram_equalization.html
+[CLAHE - Contrast Limited Adaptive Histogram Equalization] https://docs.opencv.org/3.1.0/d5/daf/tutorial_py_histogram_equalization.html
 
-**Color masking**  
-For color masking I found that the LAB color space is most suitable for the white and yellow lane detection. I implemented two seperate masks, one for yellow line detection (`def yellow_LAB()`) and the other for white line detection (`def white_LAB()`), which can be found in lines #49 through #95 of `masks.py`. The methodology for both is the same, I convert to LAB color space, apply upper and lower thresholds to all color channels respectively and combine them into one binary image. The only difference is, that I tuned the threshold differently for white and yellow lane detection. The results of this step can be seen in the following image:  
+**Color masking**  (lines #22 through #34 of `masks.py`)
+For color masking I found that the LAB color space is most suitable for the white and yellow lane detection. I implemented two seperate masks, one for yellow line detection `def yellow_LAB()` and the other for white line detection `def white_LAB()`. The methodology for both lane types is the same: Convert image to LAB color space, apply upper and lower thresholds to all color channels respectively and combine them into one binary image. The only difference is, that I tuned the threshold differently for white and yellow lane detection. The results of this step can be seen in the following image:  
 
 ![alt text](./output_images/Masks_test6.png)
 
 #### 4. Finding lanes
 
 The masked binary image in birdview perspective builds the basis for the lane finding algorithm. Again, a 2-step process was sufficient to yield a satisfying result:
-
+  
 1. Apply search method  
     Prio 1: Use local search method (if lanes have been detected in the previous frame)  
     Prio 2: Use histogram search method (ff no lanes have been detected in previous frame)  
 2. Apply gamma filter to lane coefficients 
-    
+     
 **Histogram search** (`hist_search()`in lines #93 through #171 in `lanes.py`)  
 The histogram search approaches the lane finding problem by dividing the binary image into 9 horizontal slices. For each slice, an histogram in vertical direction is computed, which basically the sum of pixels with value 1 for each column in the image slice. This method starts with the slice on the lower part of the picture and works upwards. Thus, it can be improved by applying a geometric mask before the search. Since we know that the car is driving more or less centerd in the lane and that the lane width can be assummed to be constant, we know quite precisely where we can expect lanes to be detected in the lower part of the image. Hence, we can apply a geometric mask around that area to improve the histogram search.
 
@@ -112,17 +113,17 @@ The histogram search approaches the lane finding problem by dividing the binary 
 The local search method uses the information from the previous time step(s), if lanes had been detected before. It applies a margin around the previously detected lanes (yellow lanes in the image above) and searches only in this area locally for "hot pixels".
 
 **Gamma filter** (`filter_lanes()` in lines #297 through #318 in `lanes.py`)  
-The gamma filter is a simple filter, weighing the current `measurement` and the measurement from the previous time steps (`history`), using the formula below. This is applied to all lane coefficients (3 polynom coefficients and estimated curvature radius) seperately.
+The gamma filter is a simple filter, weighing the current `measurement` and the measurement from the previous time steps (`history`), using the formula below. This is applied to all lane coefficients (3 polynom coefficients and estimated curvature radius) seperately. I tuned the filter with a value of `gamma = 0.6`.  
 ```python
 gamma_filter = measurement * gamma + (1-gamma) * history
 ```
 #### 5. Radius of curvature & lane center position
 
 `get_radius()`: The calculation of the curvature radius is done in lines #56 through #72 in `lanes.py`. As said, in the previous section, the result is smoothened by applying a gamma filter.
-`get_lateral_position()`: The calculation of the lane center position is done in lines #34 through #54 in `lanes.py` and assumes the camera to be installed in the center of the car (vehicle center = image center). The current lateral position is calculated by computing the average lateral position in the lower part of the picture considering an area of 100 pixels height. From there, the distance to the image center can be computed. The [standard ego vehicle coordinate system](https://raw.githubusercontent.com/MechLabEngineering/TinkerforgeAttitude/master/Fahrzeug-Koordinatensystem-DIN70000.png)is applied, thus, positive values pointing to the left.
+`get_lateral_position()`: The calculation of the lane center position is done in lines #34 through #54 in `lanes.py` and assumes the camera to be installed in the center of the car (vehicle center = image center). The current lateral position is calculated by computing the average lateral position in the lower part of the picture considering an area of 100 pixels height. From there, the distance to the image center can be computed. The [standard ego vehicle coordinate system](https://raw.githubusercontent.com/MechLabEngineering/TinkerforgeAttitude/master/Fahrzeug-Koordinatensystem-DIN70000.png) is applied, thus, positive values pointing to the left.
 
-`Distance from Center > 0`: ego vehicle driving right from lane center  
-`Distance from Center < 0`: ego vehicle driving left from lane center  
+`Distance from Center > 0: ego vehicle driving right from lane center`  
+`Distance from Center < 0: ego vehicle driving left from lane center`  
 
 #### 6. Pipeline output 
 Function: `plot_lanes()`in lines #299 through #360 in `utils.py`)  
@@ -137,8 +138,8 @@ Using the outputs from step 4 and 5 above, the lanes, curvature radius and later
 
 Here's a [link to my video result](https://youtu.be/i-v_CYDYmBc)  
 
-`Distance from Center > 0`: ego vehicle driving right from lane center  
-`Distance from Center < 0`: ego vehicle driving left from lane center  
+`Distance from Center > 0: ego vehicle driving right from lane center`  
+`Distance from Center < 0: ego vehicle driving left from lane center`  
 
 ---
 
