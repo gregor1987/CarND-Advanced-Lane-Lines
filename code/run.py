@@ -5,6 +5,7 @@ import numpy as np
 
 import utils
 import constants as c
+import masks
 
 
 def initialize():
@@ -15,28 +16,20 @@ def initialize():
 
 def pipeline(img, history, camera_mtx, dist_params, video=False):
 
-    left_fit_hist = history[0]
-    right_fit_hist = history[1]
-    crv_hist = history[2]
-
-    print('Step 1: Undistort image')
+    print('Step 1: Undistortion of image')
     undistort = utils.undistort_image(img, camera_mtx, dist_params)
 
-    print('Step 2: Apply masks')
-    masked = utils.apply_masks(undistort)
+    print('Step 2: Perform perspective transform')
+    topview = utils.birdseye(undistort)
 
-    print('Step 3: Perspective transform')
-    masked_topview = utils.birdseye(masked)
-    # Apply geometric mask after perspective transform
-    masked_topview = utils.geometric_mask(masked_topview, c.GEO1.astype(int), c.GEO2.astype(int))
+    print('Step 3: Apply image masks')
+    masked_topview = utils.apply_masks(topview)
 
     print('Step 4: Find lanes')
-    [left_fit, right_fit, left_fit_hist, right_fit_hist] = utils.find_lanes(masked_topview, left_fit_hist, right_fit_hist, video)
+    [left_lane, right_lane, history] = utils.find_lanes(masked_topview, history, video)
 
     print('Step 5: Draw lanes & transform back')
-    [output, crv_hist] = utils.plot_lanes(undistort, left_fit, right_fit, crv_hist)
-
-    history = [left_fit_hist, right_fit_hist, crv_hist]
+    output = utils.plot_lanes(undistort, left_lane, right_lane)
 
     return output, history
 
@@ -47,8 +40,8 @@ def run(video=False):
 
     [camera_mtx, dist_params] = initialize()
 
-    history = [[],[],[]]
-    # Process single, not consecutive images
+    history = [[],[]]
+    # Video=False: Process single, not consecutive images
     if not video:
         file_paths = glob(join(c.IMAGES_TEST_PATH, '*.jpg'))
         file_names = os.listdir(c.IMAGES_TEST_PATH)
@@ -58,10 +51,13 @@ def run(video=False):
             result, history = pipeline(img, history, camera_mtx, dist_params)
             output.append(result)
         utils.save(output, file_names, None)
-    # Process videos or consecutive images
+    # Video=True: Process videos or consecutive images
     else:
         file_path = glob(join(c.VIDEO_TEST_PATH, '*.mp4'))
         frames = utils.read_input(file_path[0], video=True)
+        # file_path = glob(join(c.FRAMES_TEST_PATH, '*.jpg'))
+        # file_names = os.listdir(c.FRAMES_TEST_PATH)
+        # frames = utils.read_input(file_path)
         fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
         output_video = cv2.VideoWriter(c.VIDEO_SAVE_PATH + 'output_video.mp4', fourcc, 25.0, (1280,720))
         # Run pipeline in batches

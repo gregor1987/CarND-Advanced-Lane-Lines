@@ -1,39 +1,15 @@
-from os import makedirs
-from os.path import join, exists
+from os.path import join
 import numpy as np
-import matplotlib.image as mpimg
 
-
-def get_dir(directory):
-    """
-    Creates the given directory if it does not exist.
-    @param directory: The path to the directory.
-    @return: The path to the directory.
-    """
-    if not exists(directory):
-        makedirs(directory)
-    return directory
-
-def getSourcePts(img_size):
-    src = np.float32(
-     [[(img_size[0] / 2) - 55, img_size[1] / 2 + 100],
-     [((img_size[0] / 6) - 10), img_size[1]],
-     [(img_size[0] * 5 / 6) + 60, img_size[1]],
-     [(img_size[0] / 2 + 55), img_size[1] / 2 + 100]])
-    return src   
-    
-def getDestinationPts(img_size):
-    dst = np.float32(
-     [[(img_size[0] / 4), 0],
-     [(img_size[0] / 4), img_size[1]],
-     [(img_size[0] * 3 / 4), img_size[1]],
-     [(img_size[0] * 3 / 4), 0]])
-    return dst
+###################################################################
+#####################   Define constants   ########################
+###################################################################
 
 DATA_PATH = '../data/'
 CALIBRATION_PATH = join(DATA_PATH, 'camera_cal/')
 CALIBRATION_DATA = join(CALIBRATION_PATH, 'calibration_data.p')
 IMAGES_TEST_PATH = join(DATA_PATH, 'test_images/')
+FRAMES_TEST_PATH = join(DATA_PATH, 'test_frames/')
 IMAGES_SAVE_PATH = join(DATA_PATH, 'output_images/')
 VIDEO_TEST_PATH = join(DATA_PATH, 'test_video/')
 VIDEO_SAVE_PATH = join(DATA_PATH, 'output_video/')
@@ -41,11 +17,18 @@ VIDEO_SAVE_PATH = join(DATA_PATH, 'output_video/')
 # Define image size
 IMG_SIZE = (1280, 720)
 
-# Points picked from an image with straight lane lines.
-SRC = getSourcePts(IMG_SIZE)
+# Define source and destination points points for the geometric mask
+SRC = np.float32(
+     [[580, 460],
+     [260, 691],
+     [1067, 691],
+     [705, 460]])
 
-# Mapping from those points to a rectangle for a birdseye view.
-DST = getDestinationPts(IMG_SIZE)
+DST = np.float32(
+     [[(IMG_SIZE[0] / 4), 0],
+     [(IMG_SIZE[0] / 4), IMG_SIZE[1]],
+     [(IMG_SIZE[0] * 3 / 4), IMG_SIZE[1]],
+     [(IMG_SIZE[0] * 3 / 4), 0]])
 
 # Define points for the geometric mask
 GEO1 = np.float32(
@@ -60,12 +43,8 @@ GEO2 = np.float32(
      [(IMG_SIZE[0] * 5 / 6), IMG_SIZE[1]],
      [(IMG_SIZE[0] - 50), 0]])
 
-# The maximum number of previous frames for which lane fits will be saved
-HIST_LENGTH = 7
-CRV_HIST = 7
-
 # Average lane width in pixels
-AVG_LN_WIDTH = 650
+AVG_LN_WIDTH = 640
 
 # Batch size for video processing
 BATCH_SIZE = 100
